@@ -1,0 +1,19 @@
+{
+  "name": "comfyui-lora-deck",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Frontend for the LoRA Deck ComfyUI node.",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node build.mjs --tests && node --test \".test-build/*.test.mjs\"",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "esbuild": "0.25.5",
+    "typescript": "5.8.3"
+  }
+}
