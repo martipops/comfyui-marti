@@ -30,7 +30,7 @@ class LoraDeck(io.ComfyNode):
                 io.Model.Input("model"),
                 io.Clip.Input("clip", optional=True,
                               tooltip="Optional. Only needed for LoRAs that also train the text encoder."),
-                LoraDeckInput.Input("loras"),
+                LoraDeckInput.Input("loras", extra_dict={"socketless": True}),
             ],
             outputs=[
                 io.Model.Output(display_name="MODEL"),

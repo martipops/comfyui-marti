@@ -27,7 +27,7 @@ class SourceSwitch(io.ComfyNode):
             search_aliases=["switch", "model switch", "checkpoint switch", "subgraph switch", "router", "select"],
             description="Pick one of several channels (checkpoints, subgraphs, anything). Only the active channel runs.",
             inputs=[
-                SourceSwitchConfig.Input("config"),
+                SourceSwitchConfig.Input("config", extra_dict={"socketless": True}),
                 io.Int.Input("channel", optional=True, force_input=True,
                              tooltip="Overrides the dropdown when connected. Wraps around, so any integer works."),
                 *slots,
