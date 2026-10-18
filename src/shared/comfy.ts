@@ -20,13 +20,37 @@ export interface DomWidgetOptions<V> {
   margin?: number;
 }
 
+export interface NodeSlot {
+  name: string;
+  type: string;
+  label?: string;
+  /** Set on inputs that mirror a widget. */
+  widget?: { name: string };
+}
+
+export interface ComfyLink {
+  origin_id: number | string;
+  origin_slot: number;
+  type: string;
+}
+
 export interface ComfyNode {
   size: [number, number];
   widgets?: ComfyWidget[];
+  inputs: NodeSlot[];
+  outputs: NodeSlot[];
+  graph: { getNodeById(id: number | string): ComfyNode | null } | null;
   computeSize(): [number, number];
   setSize(size: [number, number]): void;
   setDirtyCanvas(fg: boolean, bg?: boolean): void;
+  addInput(name: string, type: string): NodeSlot;
+  removeInput(slot: number): void;
+  addOutput(name: string, type: string): NodeSlot;
+  removeOutput(slot: number): void;
+  getInputLink(slot: number): ComfyLink | null;
+  connect(slot: number, target: ComfyNode, targetSlot: number): unknown;
   onRemoved?: () => void;
+  onConnectionsChange?: (...args: unknown[]) => void;
   addDOMWidget<V>(name: string, type: string, element: HTMLElement, options: DomWidgetOptions<V>): ComfyWidget;
 }
 

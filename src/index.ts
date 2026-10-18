@@ -1,9 +1,10 @@
 import { loraDeck } from "./nodes/lora_deck";
+import { sourceSwitch } from "./nodes/source_switch";
 import { app } from "./shared/comfy";
 import type { MartiNode } from "./shared/node";
 import theme from "./shared/theme.css";
 
-const NODES: MartiNode[] = [loraDeck];
+const NODES: MartiNode[] = [loraDeck, sourceSwitch];
 
 function injectStyles() {
   const id = "comfyui-marti-styles";

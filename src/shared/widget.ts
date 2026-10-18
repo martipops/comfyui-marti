@@ -12,6 +12,8 @@ export interface WidgetView<V> {
   readonly minHeight: number;
   setData(raw: unknown): void;
   dispose(): void;
+  /** Called by ComfyUI after each queued run (same hook as "control after generate"). */
+  afterQueued?(): void;
 }
 
 export function domWidget<V>(
@@ -39,6 +41,7 @@ export function domWidget<V>(
       hideOnZoom: true,
       margin: 4,
     });
+    if (view.afterQueued) Object.assign(widget, { afterQueued: () => view.afterQueued!() });
 
     const onRemoved = node.onRemoved;
     node.onRemoved = function () {
