@@ -16,6 +16,8 @@ function managedNames(node: ComfyNode): string[] {
 /** Detected type per channel: the type of any connected input in that channel. */
 export function channelTypes(node: ComfyNode, cfg: SwitchConfig): string[] {
   const types: string[] = cfg.channels.map(() => ANY);
+  // getInputLink throws while the node is being created and isn't in a graph yet.
+  if (!node.graph) return types;
   node.inputs.forEach((input, i) => {
     if (!isManaged(input.name)) return;
     const link = node.getInputLink(i);

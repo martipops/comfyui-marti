@@ -87,12 +87,19 @@ export class SwitchView implements WidgetView<SwitchConfig> {
     this.events.onChange(false);
   }
 
-  /** Batched to the next frame so loading a workflow finishes restoring links first. */
-  private scheduleSync() {
+  /**
+   * Batched to the next frame so loading a workflow finishes restoring links first.
+   * Waits (a few frames at most) for a freshly created node to be added to the graph.
+   */
+  private scheduleSync(attempts = 30) {
     if (this.syncQueued) return;
     this.syncQueued = true;
     requestAnimationFrame(() => {
       this.syncQueued = false;
+      if (!this.node.graph) {
+        if (attempts > 0) this.scheduleSync(attempts - 1);
+        return;
+      }
       syncSockets(this.node, this.value);
       this.render();
       this.events.onChange(true);
