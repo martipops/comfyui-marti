@@ -26,7 +26,12 @@ class SourceSwitch(io.ComfyNode):
             category="utils",
             search_aliases=["switch", "model switch", "checkpoint switch", "subgraph switch", "router", "select"],
             description="Pick one of several channels (checkpoints, subgraphs, anything). Only the active channel runs.",
-            inputs=[SourceSwitchConfig.Input("config"), *slots],
+            inputs=[
+                SourceSwitchConfig.Input("config"),
+                io.Int.Input("channel", optional=True, force_input=True,
+                             tooltip="Overrides the dropdown when connected. Wraps around, so any integer works."),
+                *slots,
+            ],
             outputs=[io.AnyType.Output(f"out{o}", display_name=f"out{o}") for o in range(MAX_OUTPUTS)],
         )
 
@@ -40,13 +45,14 @@ class SourceSwitch(io.ComfyNode):
         return True
 
     @classmethod
-    def check_lazy_status(cls, config, **kwargs) -> list[str]:
+    def check_lazy_status(cls, config, channel=None, **kwargs) -> list[str]:
         # Connected but not yet evaluated inputs arrive as None; unconnected ones are absent.
-        return [name for _, name in parse_config(config).active_inputs() if name in kwargs and kwargs[name] is None]
+        inputs = parse_config(config).select(channel).active_inputs()
+        return [name for _, name in inputs if name in kwargs and kwargs[name] is None]
 
     @classmethod
-    def execute(cls, config, **kwargs) -> io.NodeOutput:
+    def execute(cls, config, channel=None, **kwargs) -> io.NodeOutput:
         outputs = [None] * MAX_OUTPUTS
-        for index, name in parse_config(config).active_inputs():
+        for index, name in parse_config(config).select(channel).active_inputs():
             outputs[index] = kwargs.get(name)
         return io.NodeOutput(*outputs)

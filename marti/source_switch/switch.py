@@ -15,7 +15,7 @@ on output index ``o``.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 SCHEMA_VERSION = 2
@@ -36,6 +36,12 @@ class SwitchConfig:
     @property
     def has_active(self) -> bool:
         return 0 <= self.active < self.channels
+
+    def select(self, channel: int | None) -> SwitchConfig:
+        """Use a connected channel index instead of the widget's; it wraps so any int is valid."""
+        if channel is None or not self.channels:
+            return self
+        return replace(self, active=channel % self.channels)
 
     def active_inputs(self) -> list[tuple[int, str]]:
         """(output index, input name) for every output of the active channel."""

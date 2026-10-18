@@ -56,3 +56,8 @@
 [data-testid^="node-body-"]:has(.ss-switch) > :has(.ss-switch) {
   order: -1;
 }
+.ss-select:disabled,
+.ss-mode:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -20,6 +20,17 @@ class ParseConfigTests(unittest.TestCase):
             self.assertFalse(cfg.has_active, active)
             self.assertEqual(cfg.active_inputs(), [])
 
+    def test_connected_channel_overrides_and_wraps(self):
+        cfg = parse_config(CONFIG)  # 3 channels, widget says C1
+        self.assertEqual(cfg.select(None).active, 1)
+        for channel, expected in ((0, 0), (2, 2), (3, 0), (7, 1), (-1, 2)):
+            self.assertEqual(cfg.select(channel).active, expected, channel)
+        self.assertEqual(cfg.select(5).active_inputs(), [(0, "c2_o0"), (1, "c2_o1")])
+
+    def test_select_on_empty_config_is_noop(self):
+        cfg = parse_config(None)
+        self.assertEqual(cfg.select(4), cfg)
+
     def test_counts_are_clamped(self):
         cfg = parse_config({"channels": 99, "outputs": -4, "active": 0})
         self.assertEqual((cfg.channels, cfg.outputs), (MAX_CHANNELS, 0))

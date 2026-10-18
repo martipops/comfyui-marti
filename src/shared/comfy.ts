@@ -49,6 +49,7 @@ export interface ComfyNode {
   addOutput(name: string, type: string): NodeSlot;
   removeOutput(slot: number): void;
   getInputLink(slot: number): ComfyLink | null;
+  isInputConnected(slot: number): boolean;
   connect(slot: number, target: ComfyNode, targetSlot: number): unknown;
   onRemoved?: () => void;
   onConnectionsChange?: (...args: unknown[]) => void;

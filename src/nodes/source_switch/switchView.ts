@@ -3,7 +3,7 @@ import { h, isolateFromCanvas } from "../../shared/dom";
 import { createStepper } from "../../shared/stepper";
 import type { WidgetView, WidgetViewEvents } from "../../shared/widget";
 import { channelLabel, defaultConfig, MAX_CHANNELS, MAX_OUTPUTS, nextChannel, normalizeConfig, type SwitchConfig } from "./model";
-import { relabel, syncSockets } from "./sockets";
+import { isChannelLinked, relabel, syncSockets } from "./sockets";
 
 /** Fixed panel size: the node's sockets start right below it (see index.ts). */
 export const LAYOUT = { rowHeight: 26, gap: 6, padding: 6 } as const;
@@ -23,6 +23,8 @@ export class SwitchView implements WidgetView<SwitchConfig> {
   );
   private readonly outputs = createStepper("Outputs", 1, MAX_OUTPUTS, (d) => this.update(() => (this.value.outputs += d), true));
   private syncQueued = false;
+  /** True while the optional `channel` input is connected and overrides the dropdown. */
+  private linked = false;
 
   constructor(private readonly events: WidgetViewEvents, private readonly node: ComfyNode) {
     for (const [key, px] of Object.entries(LAYOUT)) this.el.style.setProperty(`--ss-${key}`, `${px}px`);
@@ -41,6 +43,7 @@ export class SwitchView implements WidgetView<SwitchConfig> {
     node.onConnectionsChange = (...args) => {
       onConnectionsChange?.apply(node, args);
       relabel(node, this.value);
+      this.render();
     };
 
     this.render();
@@ -58,7 +61,7 @@ export class SwitchView implements WidgetView<SwitchConfig> {
   }
 
   afterQueued() {
-    if (this.value.mode === "cycle") this.update(() => (this.value.active = nextChannel(this.value)));
+    if (this.value.mode === "cycle" && !this.linked) this.update(() => (this.value.active = nextChannel(this.value)));
   }
 
   dispose() {}
@@ -84,19 +87,28 @@ export class SwitchView implements WidgetView<SwitchConfig> {
         return;
       }
       syncSockets(this.node, this.value);
+      this.render();
       this.events.onChange(true);
     });
   }
 
   private render() {
     const { channels, outputs, active, mode } = this.value;
-    if (this.select.options.length !== channels) {
-      this.select.replaceChildren(
-        ...Array.from({ length: channels }, (_, c) => h("option", { value: c }, channelLabel(c))),
-      );
+    this.linked = isChannelLinked(this.node);
+    const optionsKey = `${channels}:${this.linked}`;
+    if (this.select.dataset.options !== optionsKey) {
+      this.select.dataset.options = optionsKey;
+      const items = Array.from({ length: channels }, (_, c) => h("option", { value: c }, channelLabel(c)));
+      if (this.linked) items.push(h("option", { value: "input" }, "From input"));
+      this.select.replaceChildren(...items);
     }
-    this.select.value = String(active);
-    this.modeBtn.setAttribute("aria-pressed", String(mode === "cycle"));
+    this.select.value = this.linked ? "input" : String(active);
+    this.select.disabled = this.linked;
+    this.modeBtn.disabled = this.linked;
+    this.modeBtn.title = this.linked
+      ? "Disabled while the channel input is connected"
+      : "Switch to the next channel after each queued run";
+    this.modeBtn.setAttribute("aria-pressed", String(mode === "cycle" && !this.linked));
     this.channels.set(channels);
     this.outputs.set(outputs);
   }

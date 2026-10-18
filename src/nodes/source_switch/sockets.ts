@@ -90,3 +90,12 @@ export function relabel(node: ComfyNode, cfg: SwitchConfig) {
   });
   node.setDirtyCanvas(true, true);
 }
+
+/** Name of the optional INT input that overrides the dropdown (see node.py). */
+export const CHANNEL_INPUT = "channel";
+
+export function isChannelLinked(node: ComfyNode): boolean {
+  if (!node.graph) return false;
+  const slot = node.inputs.findIndex((i) => i.name === CHANNEL_INPUT);
+  return slot >= 0 && node.isInputConnected(slot);
+}
