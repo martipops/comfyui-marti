@@ -168,10 +168,11 @@ import{app as ee}from"../../scripts/app.js";import{api as te}from"../../scripts/
 /* ---- name -------------------------------------------------------------- */
 .ld-name {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
   min-width: 0;
   height: 100%;
+  line-height: 1;
   text-align: left;
 }
 .ld-name-text {
