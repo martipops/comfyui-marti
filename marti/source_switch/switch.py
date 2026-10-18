@@ -2,19 +2,14 @@
 
 Mirrors ``src/nodes/source_switch/model.ts``; keep the two in sync.
 
-Sources and channels refer to fixed input slots, so removing one never
-renames the sockets of the others::
+Channels (C0, C1, ...) are the switchable sources and outputs are what each
+channel provides. Both are numbered by position and only ever grow or shrink
+at the end, so sockets never need renaming::
 
-    {
-      "version": 1,
-      "sources": [{"slot": 0, "name": "Krea 2"}, {"slot": 2, "name": "SDXL"}],
-      "channels": [{"slot": 0, "name": "MODEL"}, {"slot": 1, "name": "VAE"}],
-      "active": 2,
-      "mode": "fixed"
-    }
+    {"version": 2, "channels": 3, "outputs": 2, "active": 1, "mode": "fixed"}
 
-The socket for source slot ``s`` and channel slot ``c`` is ``input_name(s, c)``
-and channel ``c`` always comes out of output index ``c``.
+Channel ``c`` / output ``o`` arrives on socket ``input_name(c, o)`` and leaves
+on output index ``o``.
 """
 
 from __future__ import annotations
@@ -23,53 +18,36 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-SCHEMA_VERSION = 1
-MAX_SOURCES = 12
-MAX_CHANNELS = 8
+SCHEMA_VERSION = 2
+MAX_CHANNELS = 12
+MAX_OUTPUTS = 8
 
 
-def input_name(source_slot: int, channel_slot: int) -> str:
-    return f"s{source_slot}_c{channel_slot}"
-
-
-@dataclass(frozen=True, slots=True)
-class Slot:
-    slot: int
-    name: str
+def input_name(channel: int, output: int) -> str:
+    return f"c{channel}_o{output}"
 
 
 @dataclass(frozen=True, slots=True)
 class SwitchConfig:
-    sources: tuple[Slot, ...]
-    channels: tuple[Slot, ...]
-    active: int | None
+    channels: int
+    outputs: int
+    active: int
 
     @property
-    def active_source(self) -> Slot | None:
-        return next((s for s in self.sources if s.slot == self.active), None)
+    def has_active(self) -> bool:
+        return 0 <= self.active < self.channels
 
     def active_inputs(self) -> list[tuple[int, str]]:
-        """(output index, input name) for every channel of the active source."""
-        if self.active_source is None:
+        """(output index, input name) for every output of the active channel."""
+        if not self.has_active:
             return []
-        return [(c.slot, input_name(self.active, c.slot)) for c in self.channels]
+        return [(o, input_name(self.active, o)) for o in range(self.outputs)]
 
 
-def _parse_slots(raw: Any, limit: int) -> tuple[Slot, ...]:
-    if not isinstance(raw, list):
-        return ()
-    seen: set[int] = set()
-    slots = []
-    for item in raw:
-        if not isinstance(item, dict):
-            continue
-        slot = item.get("slot")
-        if not isinstance(slot, int) or isinstance(slot, bool) or not 0 <= slot < limit or slot in seen:
-            continue
-        seen.add(slot)
-        name = item.get("name")
-        slots.append(Slot(slot, name.strip() if isinstance(name, str) and name.strip() else f"#{slot + 1}"))
-    return tuple(slots)
+def _int(value: Any, low: int, high: int, default: int) -> int:
+    if not isinstance(value, int) or isinstance(value, bool):
+        return default
+    return min(high, max(low, value))
 
 
 def parse_config(value: Any) -> SwitchConfig:
@@ -80,9 +58,8 @@ def parse_config(value: Any) -> SwitchConfig:
             value = {}
     if not isinstance(value, dict):
         value = {}
-    active = value.get("active")
     return SwitchConfig(
-        sources=_parse_slots(value.get("sources"), MAX_SOURCES),
-        channels=_parse_slots(value.get("channels"), MAX_CHANNELS),
-        active=active if isinstance(active, int) and not isinstance(active, bool) else None,
+        channels=_int(value.get("channels"), 0, MAX_CHANNELS, 0),
+        outputs=_int(value.get("outputs"), 0, MAX_OUTPUTS, 0),
+        active=_int(value.get("active"), -1, MAX_CHANNELS, -1),
     )

@@ -1,4 +1,4 @@
-/* Source Switch. Shared controls and theme tokens live in shared/theme.css. */
+/* Source Switch panel. Shared controls and theme tokens live in shared/theme.css. */
 .ss-switch {
   display: flex;
   flex-direction: column;
@@ -10,72 +10,32 @@
 .ss-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   height: var(--ss-rowHeight);
   flex: none;
   min-width: 0;
-}
-.ss-tabs,
-.ss-channels {
-  display: flex;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: thin;
 }
 .ss-caption {
   flex: none;
   color: var(--mt-muted);
 }
-
-/* ---- tabs --------------------------------------------------------------- */
-.ss-tab {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: none;
+.ss-select {
+  flex: 1;
+  min-width: 0;
   height: 24px;
-  padding: 0 10px;
+  padding: 0 6px;
   border-radius: var(--mt-radius);
   border: 1px solid var(--mt-border);
   background: var(--mt-bg);
-  color: var(--mt-muted);
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-}
-.ss-tab:hover {
   color: var(--mt-fg);
+  font: inherit;
+  cursor: pointer;
+}
+.ss-select:hover {
   background: var(--mt-bg-hover);
 }
-.ss-tab.ss-active {
-  color: var(--mt-fg);
+.ss-select:focus-visible {
   border-color: var(--mt-accent);
-  background: color-mix(in srgb, var(--mt-accent) 22%, var(--mt-bg));
-}
-.ss-tab-remove {
-  width: 0;
-  overflow: hidden;
-  color: var(--mt-muted) !important;
-  line-height: 1;
-  transition: width 120ms;
-}
-.ss-tab:hover .ss-tab-remove,
-.ss-tab-remove:focus-visible {
-  width: 12px;
-}
-.ss-tab-remove:hover {
-  color: var(--mt-danger) !important;
-}
-.ss-tab-input {
-  width: 90px;
-  border: 0;
-  padding: 0;
-  font: inherit;
-  color: var(--mt-fg);
-  background: transparent;
   outline: none;
 }
 .ss-mode {
@@ -87,42 +47,6 @@
   border-color: var(--mt-accent) !important;
   background: color-mix(in srgb, var(--mt-accent) 22%, var(--mt-bg)) !important;
 }
-.ss-add:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-/* ---- output channel chips -------------------------------------------------- */
-.ss-chip {
-  display: flex;
-  align-items: center;
-  flex: none;
-  height: 22px;
-  padding: 0 4px 0 8px;
-  border-radius: 11px;
-  background: var(--mt-bg);
-  border: 1px solid var(--mt-border);
-}
-.ss-chip:focus-within {
-  border-color: var(--mt-accent);
-}
-.ss-chip-input {
-  width: 7ch;
-  border: 0;
-  padding: 0;
-  font: inherit;
-  color: var(--mt-fg);
-  background: transparent;
-  outline: none;
-}
-.ss-chip-input::placeholder {
-  color: var(--mt-muted);
-}
-.ss-chip-remove {
-  width: 16px;
-  color: var(--mt-muted) !important;
-  line-height: 1;
-}
-.ss-chip-remove:hover {
-  color: var(--mt-danger) !important;
+.ss-row .mt-stepper {
+  flex: 1;
 }

@@ -4,6 +4,7 @@
 import { app as rawApp } from "../../scripts/app.js";
 // @ts-expect-error - provided by the ComfyUI frontend at runtime
 import { api as rawApi } from "../../scripts/api.js";
+import type { NodeDef } from "./node";
 
 export interface ComfyWidget {
   name: string;
@@ -63,6 +64,8 @@ export interface ComfyExtension {
   name: string;
   getCustomWidgets?: () => Record<string, CustomWidgetFactory>;
   setup?: () => void | Promise<void>;
+  addCustomNodeDefs?: (defs: Record<string, NodeDef>) => void;
+  beforeRegisterNodeDef?: (nodeType: { prototype: object } & Record<string, unknown>, nodeData: { name: string }) => void;
 }
 
 export const app = rawApp as {

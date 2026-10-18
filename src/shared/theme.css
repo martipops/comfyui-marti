@@ -233,3 +233,24 @@
 .mt-picker-status[hidden] {
   display: none;
 }
+
+/* ---- stepper ------------------------------------------------------------- */
+.mt-stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.mt-stepper-label {
+  flex: 1;
+  color: var(--mt-muted);
+}
+.mt-stepper-count {
+  min-width: 2ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.mt-stepper .mt-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

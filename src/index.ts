@@ -19,4 +19,13 @@ app.registerExtension({
   name: "comfyui-marti",
   setup: injectStyles,
   getCustomWidgets: () => Object.assign({}, ...NODES.map((n) => n.widgets ?? {})),
+  addCustomNodeDefs(defs) {
+    for (const node of NODES) {
+      const def = node.nodeId ? defs[node.nodeId] : undefined;
+      if (def) node.patchDef?.(def);
+    }
+  },
+  beforeRegisterNodeDef(nodeType, nodeData) {
+    NODES.find((n) => n.nodeId === nodeData.name)?.patchType?.(nodeType);
+  },
 });

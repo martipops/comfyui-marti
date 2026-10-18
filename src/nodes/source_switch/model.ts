@@ -1,53 +1,36 @@
 // Pure data model for the Source Switch widget value. Mirrors marti/source_switch/switch.py; keep in sync.
-// Channels are kept compact (slot === position) so channel c always maps to output index c.
-// Source slots are stable ids so removing a source never renames other sources' sockets.
+// Channels (C0, C1, ...) and outputs are numbered by position and only grow or shrink at the end,
+// so channel c / output o is always socket `c{c}_o{o}` and output index o.
 import { isRecord } from "../../shared/value";
 
-export const SCHEMA_VERSION = 1;
-export const MAX_SOURCES = 12;
-export const MAX_CHANNELS = 8;
+export const SCHEMA_VERSION = 2;
+export const MAX_CHANNELS = 12;
+export const MAX_OUTPUTS = 8;
 
 export type Mode = "fixed" | "cycle";
 
-export interface Slot {
-  slot: number;
-  name: string;
-}
-
 export interface SwitchConfig {
   version: typeof SCHEMA_VERSION;
-  sources: Slot[];
-  channels: Slot[];
-  active: number | null;
+  channels: number;
+  outputs: number;
+  active: number;
   mode: Mode;
 }
 
-export const inputName = (sourceSlot: number, channelSlot: number): string => `s${sourceSlot}_c${channelSlot}`;
-export const INPUT_NAME = /^s(\d+)_c(\d+)$/;
+export const inputName = (channel: number, output: number): string => `c${channel}_o${output}`;
+export const INPUT_NAME = /^c(\d+)_o(\d+)$/;
+export const channelLabel = (channel: number): string => `C${channel}`;
 
-export function defaultConfig(): SwitchConfig {
-  return {
-    version: SCHEMA_VERSION,
-    sources: [{ slot: 0, name: "A" }, { slot: 1, name: "B" }],
-    channels: [{ slot: 0, name: "" }],
-    active: 0,
-    mode: "fixed",
-  };
-}
+export const defaultConfig = (): SwitchConfig => ({
+  version: SCHEMA_VERSION,
+  channels: 2,
+  outputs: 1,
+  active: 0,
+  mode: "fixed",
+});
 
-function parseSlots(raw: unknown, limit: number): Slot[] {
-  if (!Array.isArray(raw)) return [];
-  const seen = new Set<number>();
-  const slots: Slot[] = [];
-  for (const item of raw) {
-    if (!isRecord(item) || !Number.isInteger(item.slot)) continue;
-    const slot = item.slot as number;
-    if (slot < 0 || slot >= limit || seen.has(slot)) continue;
-    seen.add(slot);
-    slots.push({ slot, name: typeof item.name === "string" ? item.name.trim() : "" });
-  }
-  return slots;
-}
+const clampInt = (value: unknown, low: number, high: number, fallback: number): number =>
+  Number.isInteger(value) ? Math.min(high, Math.max(low, value as number)) : fallback;
 
 export function normalizeConfig(value: unknown): SwitchConfig {
   if (typeof value === "string") {
@@ -58,34 +41,22 @@ export function normalizeConfig(value: unknown): SwitchConfig {
     }
   }
   if (!isRecord(value)) return defaultConfig();
-  const sources = parseSlots(value.sources, MAX_SOURCES);
-  // Re-compact channels in case a saved value has gaps; output index must equal position.
-  const channels = parseSlots(value.channels, MAX_CHANNELS).map((c, i) => ({ ...c, slot: i }));
-  const active = sources.some((s) => s.slot === value.active) ? (value.active as number) : (sources[0]?.slot ?? null);
+  const fallback = defaultConfig();
+  const channels = clampInt(value.channels, 1, MAX_CHANNELS, fallback.channels);
   return {
     version: SCHEMA_VERSION,
-    sources,
-    channels: channels.length ? channels : [{ slot: 0, name: "" }],
-    active,
+    channels,
+    outputs: clampInt(value.outputs, 1, MAX_OUTPUTS, fallback.outputs),
+    active: clampInt(value.active, 0, channels - 1, 0),
     mode: value.mode === "cycle" ? "cycle" : "fixed",
   };
 }
 
-export function freeSourceSlot(cfg: SwitchConfig): number | null {
-  const used = new Set(cfg.sources.map((s) => s.slot));
-  for (let i = 0; i < MAX_SOURCES; i++) if (!used.has(i)) return i;
-  return null;
+export const nextChannel = (cfg: SwitchConfig): number => (cfg.active + 1) % cfg.channels;
+
+/** Socket names in display order: grouped by channel, then output. */
+export function desiredInputs(cfg: SwitchConfig): string[] {
+  const names: string[] = [];
+  for (let c = 0; c < cfg.channels; c++) for (let o = 0; o < cfg.outputs; o++) names.push(inputName(c, o));
+  return names;
 }
-
-/** The source after the active one, wrapping around. */
-export function nextSource(cfg: SwitchConfig): number | null {
-  if (!cfg.sources.length) return null;
-  const i = cfg.sources.findIndex((s) => s.slot === cfg.active);
-  return cfg.sources[(i + 1) % cfg.sources.length].slot;
-}
-
-/** Socket names in display order: grouped by source, then channel. */
-export const desiredInputs = (cfg: SwitchConfig): string[] =>
-  cfg.sources.flatMap((s) => cfg.channels.map((c) => inputName(s.slot, c.slot)));
-
-export const sourceLabel = (s: Slot): string => s.name || `#${s.slot + 1}`;
