@@ -50,3 +50,9 @@
 .ss-row .mt-stepper {
   flex: 1;
 }
+
+/* Vue nodes mode lays nodes out with HTML (sockets, then widgets, in a flex column),
+   so slot_start_y doesn't apply there. Move the section holding the panel to the top. */
+[data-testid^="node-body-"]:has(.ss-switch) > :has(.ss-switch) {
+  order: -1;
+}
