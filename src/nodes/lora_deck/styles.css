@@ -1,0 +1,103 @@
+/* LoRA Deck layout. Shared controls and theme tokens live in shared/theme.css. */
+.ld-deck {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-rowGap);
+  padding: var(--ld-padding);
+  width: 100%;
+  height: 100%;
+  overflow: hidden auto;
+}
+.ld-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--ld-headerHeight);
+  flex: none;
+  padding: 0 2px;
+}
+.ld-count {
+  flex: 1;
+  color: var(--mt-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ld-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-rowGap);
+}
+.ld-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 64px 22px;
+  align-items: center;
+  gap: 8px;
+  height: var(--ld-rowHeight);
+  padding: 0 4px 0 8px;
+  border-radius: var(--mt-radius);
+  background: var(--mt-bg);
+  border: 1px solid transparent;
+  transition: opacity 120ms, border-color 120ms;
+}
+.ld-row:hover {
+  border-color: var(--mt-border);
+}
+.ld-row.ld-off .ld-name,
+.ld-row.ld-off .mt-scrub {
+  opacity: 0.45;
+}
+.ld-row.ld-missing {
+  border-color: color-mix(in srgb, var(--mt-danger) 55%, transparent);
+}
+
+.ld-remove {
+  opacity: 0;
+}
+.ld-row:hover .ld-remove,
+.ld-remove:focus-visible {
+  opacity: 1;
+}
+.ld-remove:hover {
+  color: var(--mt-danger) !important;
+}
+.ld-empty {
+  height: var(--ld-emptyHeight);
+  border: 1px dashed var(--mt-border) !important;
+  border-radius: var(--mt-radius);
+  color: var(--mt-muted) !important;
+}
+.ld-empty:hover {
+  color: var(--mt-fg) !important;
+  border-color: var(--mt-accent) !important;
+}
+
+.ld-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 100%;
+  line-height: 1;
+  text-align: left;
+}
+.ld-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ld-name-folder {
+  flex: none;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mt-muted);
+  font-size: 11px;
+}
+.ld-name:hover .ld-name-text {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ld-warn {
+  color: var(--mt-danger);
+}
+

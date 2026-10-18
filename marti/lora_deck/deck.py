@@ -1,7 +1,7 @@
 """Pure data model for the LoRA Deck widget value.
 
 Kept free of ComfyUI imports so it can be unit tested on its own. The frontend
-mirror of this schema lives in ``src/model.ts``; keep the two in sync.
+mirror of this schema lives in ``src/nodes/lora_deck/model.ts``; keep the two in sync.
 
 Widget value shape (schema version 1)::
 

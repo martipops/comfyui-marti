@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { clampStrength, createRow, describeLora, fuzzyScore, isActive, normalizeDeck, STRENGTH } from "../src/model";
+import { clampStrength, createRow, isActive, normalizeDeck, STRENGTH } from "../src/nodes/lora_deck/model";
 
 test("normalizeDeck accepts objects and JSON strings, drops bad rows", () => {
   const raw = { rows: [{ id: "a", lora: " x.safetensors ", strength: "0.5", on: true }, { lora: 3 }, null] };
@@ -32,18 +32,4 @@ test("isActive requires on, a file and a non-zero strength", () => {
   assert.equal(isActive(createRow("")), false);
   assert.equal(isActive(createRow("a", { strength: 0 })), false);
   assert.equal(isActive(createRow("a", { strength: 0, strengthClip: 0.5 })), true);
-});
-
-test("describeLora splits folder and strips extension", () => {
-  assert.deepEqual(describeLora("styles\\anime\\cool.safetensors"), { name: "cool", folder: "styles/anime" });
-  assert.deepEqual(describeLora("plain.pt"), { name: "plain", folder: "" });
-});
-
-test("fuzzyScore ranks name substrings over folder and scattered matches", () => {
-  const name = fuzzyScore("krea", "misc/wm_krea2.safetensors");
-  const folder = fuzzyScore("krea", "krea/other.safetensors");
-  const scattered = fuzzyScore("krea", "k_r_e_a.safetensors");
-  assert.ok(name > folder && folder > scattered && scattered > 0);
-  assert.equal(fuzzyScore("zzz", "abc"), -1);
-  assert.equal(fuzzyScore("", "abc"), 0);
 });

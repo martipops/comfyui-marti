@@ -1,0 +1,235 @@
+/* Shared theme tokens and controls. Colors come from ComfyUI theme variables so every palette works. */
+.mt-root,
+.mt-picker {
+  --mt-bg: var(--comfy-input-bg, #222);
+  --mt-bg-hover: color-mix(in srgb, var(--mt-fg) 8%, var(--mt-bg));
+  --mt-fg: var(--input-text, #ddd);
+  --mt-muted: var(--descrip-text, #999);
+  --mt-border: var(--border-color, #444);
+  --mt-accent: var(--p-primary-color, #4f8cff);
+  --mt-danger: var(--error-text, #ff6b6b);
+  --mt-radius: 6px;
+  font: 12px/1.3 system-ui, sans-serif;
+  color: var(--mt-fg);
+  box-sizing: border-box;
+}
+.mt-root *,
+.mt-picker * {
+  box-sizing: border-box;
+}
+.mt-root button,
+.mt-picker button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.mt-root :focus-visible,
+.mt-picker :focus-visible {
+  outline: 2px solid var(--mt-accent);
+  outline-offset: 1px;
+}
+
+/* ---- buttons ----------------------------------------------------------- */
+.mt-btn {
+  height: 24px;
+  padding: 0 10px !important;
+  border-radius: var(--mt-radius);
+  background: var(--mt-bg) !important;
+  border: 1px solid var(--mt-border) !important;
+}
+.mt-btn:hover {
+  background: var(--mt-bg-hover) !important;
+}
+.mt-icon-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  color: var(--mt-muted) !important;
+  font-size: 15px !important;
+  line-height: 1;
+}
+.mt-icon-btn:hover {
+  background: var(--mt-bg-hover) !important;
+  color: var(--mt-fg) !important;
+}
+
+/* ---- toggle switch ----------------------------------------------------- */
+.mt-toggle {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--mt-border) !important;
+  transition: background 120ms;
+  touch-action: none;
+}
+.mt-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 120ms;
+}
+.mt-toggle[aria-checked="true"] {
+  background: var(--mt-accent) !important;
+}
+.mt-toggle[aria-checked="true"] .mt-toggle-knob {
+  transform: translateX(12px);
+}
+.mt-toggle[aria-checked="mixed"] {
+  background: color-mix(in srgb, var(--mt-accent) 50%, var(--mt-border)) !important;
+}
+.mt-toggle[aria-checked="mixed"] .mt-toggle-knob {
+  transform: translateX(6px);
+}
+.mt-toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---- strength scrubber -------------------------------------------------- */
+.mt-scrub {
+  position: relative;
+  height: 22px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--mt-fg) 6%, transparent);
+  cursor: ew-resize;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.mt-scrub:hover,
+.mt-scrub.mt-scrubbing {
+  background: color-mix(in srgb, var(--mt-fg) 12%, transparent);
+}
+.mt-scrub-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--mt-accent) 35%, transparent);
+  pointer-events: none;
+}
+.mt-scrub.mt-negative .mt-scrub-fill {
+  background: color-mix(in srgb, var(--mt-danger) 35%, transparent);
+}
+.mt-scrub-text,
+.mt-scrub-input {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.mt-scrub.mt-zero .mt-scrub-text {
+  color: var(--mt-muted);
+}
+.mt-scrub-input {
+  display: none;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  background: var(--mt-bg);
+  outline: none;
+}
+.mt-scrub.mt-editing {
+  cursor: text;
+}
+.mt-scrub.mt-editing .mt-scrub-input {
+  display: block;
+}
+.mt-scrub.mt-editing .mt-scrub-text,
+.mt-scrub.mt-editing .mt-scrub-fill {
+  visibility: hidden;
+}
+
+/* ---- picker popover ------------------------------------------------------ */
+.mt-picker {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  background: var(--comfy-menu-bg, #1e1e1e);
+  border: 1px solid var(--mt-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.45);
+  overflow: hidden;
+}
+.mt-picker[hidden] {
+  display: none;
+}
+.mt-picker-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--mt-border);
+}
+.mt-picker-search {
+  flex: 1;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--mt-radius);
+  border: 1px solid var(--mt-border);
+  background: var(--mt-bg);
+  color: var(--mt-fg);
+  font: inherit;
+  outline: none;
+}
+.mt-picker-search:focus {
+  border-color: var(--mt-accent);
+}
+.mt-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+}
+.mt-picker-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.mt-picker-item.mt-active {
+  background: color-mix(in srgb, var(--mt-accent) 22%, transparent);
+}
+.mt-picker-item.mt-current .mt-picker-name {
+  font-weight: 600;
+}
+.mt-picker-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mt-picker-folder,
+.mt-picker-badge {
+  flex: none;
+  color: var(--mt-muted);
+  font-size: 11px;
+}
+.mt-picker-badge {
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid var(--mt-border);
+}
+.mt-picker-status {
+  padding: 8px 12px;
+  color: var(--mt-muted);
+  border-top: 1px solid var(--mt-border);
+}
+.mt-picker-status[hidden] {
+  display: none;
+}

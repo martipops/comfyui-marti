@@ -1,52 +1,21 @@
-import { app, type ComfyNode } from "./comfy";
-import type { DeckValue } from "./model";
-import styles from "./styles.css";
-import { DeckView } from "./ui/deckView";
+import { loraDeck } from "./nodes/lora_deck";
+import { app } from "./shared/comfy";
+import type { MartiNode } from "./shared/node";
+import theme from "./shared/theme.css";
 
-const WIDGET_TYPE = "LORA_DECK"; // must match lora_deck/nodes.py
+const NODES: MartiNode[] = [loraDeck];
 
 function injectStyles() {
-  const id = "lora-deck-styles";
+  const id = "comfyui-marti-styles";
   if (document.getElementById(id)) return;
   const style = document.createElement("style");
   style.id = id;
-  style.textContent = styles;
+  style.textContent = [theme, ...NODES.map((n) => n.styles ?? "")].join("\n");
   document.head.append(style);
 }
 
-function createDeckWidget(node: ComfyNode, inputName: string) {
-  const fitNode = () => {
-    const [, minHeight] = node.computeSize();
-    node.setSize([node.size[0], minHeight]);
-  };
-
-  const view = new DeckView({
-    onChange(structural) {
-      if (structural) fitNode();
-      node.setDirtyCanvas(true, true);
-    },
-  });
-
-  const widget = node.addDOMWidget<DeckValue>(inputName, WIDGET_TYPE, view.el, {
-    getValue: () => view.data,
-    setValue: (value) => view.setData(value),
-    getMinHeight: () => view.minHeight,
-    hideOnZoom: true,
-    margin: 4,
-  });
-
-  const onRemoved = node.onRemoved;
-  node.onRemoved = function () {
-    view.dispose();
-    onRemoved?.call(this);
-  };
-
-  requestAnimationFrame(fitNode);
-  return { widget, minWidth: 340 };
-}
-
 app.registerExtension({
-  name: "LoraDeck",
+  name: "comfyui-marti",
   setup: injectStyles,
-  getCustomWidgets: () => ({ [WIDGET_TYPE]: createDeckWidget }),
+  getCustomWidgets: () => Object.assign({}, ...NODES.map((n) => n.widgets ?? {})),
 });

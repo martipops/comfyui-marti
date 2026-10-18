@@ -1,12 +1,14 @@
-# LoRA Deck
+# comfyui-marti
 
-A multi-LoRA loader for ComfyUI with a proper UI: one node, any number of LoRAs,
-each with its own on/off switch and strength.
+Personal ComfyUI node pack.
 
-## Using it
+| Node | What it does |
+|---|---|
+| **LoRA Deck** (`LoraDeck`) | Any number of LoRAs in one node, each with a toggle and strength |
 
-Add **LoRA Deck** (category `loaders`, or search "lora"). Connect `model` (and
-`clip` only if your LoRAs train the text encoder), then:
+## LoRA Deck
+
+Connect `model` (and `clip` only if your LoRAs train the text encoder).
 
 | Action | How |
 |---|---|
@@ -21,26 +23,8 @@ Add **LoRA Deck** (category `loaders`, or search "lora"). Connect `model` (and
 Rows whose file is missing are outlined in red, and the queue refuses to run
 with an enabled missing LoRA rather than silently skipping it.
 
-## Layout
-
-```
-__init__.py          V3 entrypoint + WEB_DIRECTORY
-lora_deck/
-  deck.py            widget value schema, parsing (pure, unit-tested)
-  cache.py           size-bounded LRU of loaded LoRA files (pure, unit-tested)
-  nodes.py           the ComfyUI node
-src/                 TypeScript frontend
-  model.ts           widget value schema, mirrors deck.py
-  loras.ts           shared, cached LoRA file list
-  comfy.ts           the only place that touches ComfyUI frontend globals
-  index.ts           extension + DOM widget glue
-  ui/                deckView, picker (singleton), scrubber, toggle, dom helpers
-  styles.css         uses ComfyUI theme variables
-web/lora_deck.js     built bundle (committed; ComfyUI loads it directly)
-tests/               Python (unittest) and TS (node:test) tests
-```
-
-### Widget value (schema v1)
+Widget value (schema v1), defined in `marti/lora_deck/deck.py` and
+`src/nodes/lora_deck/model.ts` (change both together and bump `version`):
 
 ```json
 { "version": 1,
@@ -48,8 +32,33 @@ tests/               Python (unittest) and TS (node:test) tests
              "strength": 0.8, "strengthClip": null }] }
 ```
 
-`strengthClip: null` means "same as strength". Change the schema in
-`lora_deck/deck.py` **and** `src/model.ts` together, and bump `version`.
+## Layout
+
+```
+__init__.py              V3 entrypoint listing every node, WEB_DIRECTORY
+marti/<node>/            Python per node (pure logic kept free of ComfyUI imports)
+src/
+  index.ts               registers one frontend extension for the whole pack
+  shared/                building blocks every node reuses
+    comfy.ts             the only file touching ComfyUI frontend globals
+    widget.ts            mounts a DOM view as a widget (sizing, save/load, cleanup)
+    dom.ts               h() element helper, keyed list rendering, canvas isolation
+    toggle.ts scrubber.ts picker.ts   controls
+    modelFolder.ts       cached file list for any models/ folder
+    number.ts text.ts value.ts        pure helpers
+    theme.css            theme tokens (mt-*) and control styles
+  nodes/<node>/          view, model and styles for one node, exported as a MartiNode
+web/marti.js             built bundle (committed; ComfyUI loads it directly)
+tests/                   Python (unittest) and TS (node:test)
+```
+
+### Adding a node
+
+1. Python: `marti/<node>/node.py`, add it to the list in `__init__.py`. Prefix new
+   node ids with `Marti` to avoid clashing with other packs.
+2. Frontend (only if it needs a custom widget): `src/nodes/<node>/index.ts`
+   exporting a `MartiNode`, added to `NODES` in `src/index.ts`. Use the shared
+   controls and the `mt-` classes; prefix node-specific classes.
 
 ## Development
 
@@ -57,8 +66,8 @@ tests/               Python (unittest) and TS (node:test) tests
 npm install
 npm run watch        # rebuild web/ on save, then refresh the browser
 npm run check        # typecheck + TS tests + production build
-python -m unittest tests.test_deck   # run from this folder with ComfyUI's python
+python -m unittest tests.test_lora_deck   # from this folder, with ComfyUI's python
 ```
 
-Commit the rebuilt `web/lora_deck.js` with source changes. Python changes need a
+Commit the rebuilt `web/marti.js` with source changes. Python changes need a
 ComfyUI restart; frontend changes only need a browser refresh.

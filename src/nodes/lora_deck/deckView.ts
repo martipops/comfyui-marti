@@ -1,17 +1,16 @@
-import { isMissing, loadLoras, onLorasChanged } from "../loras";
-import { createRow, describeLora, emptyDeck, isActive, normalizeDeck, type DeckRow, type DeckValue } from "../model";
-import { h, isolateFromCanvas } from "./dom";
-import { openPicker } from "./picker";
-import { createScrubber, type Scrubber } from "./scrubber";
-import { createToggle, enableTogglePainting, type Toggle } from "./toggle";
+import { h, isolateFromCanvas, syncKeyed } from "../../shared/dom";
+import { modelFolder } from "../../shared/modelFolder";
+import { openPicker } from "../../shared/picker";
+import { createScrubber, type Scrubber } from "../../shared/scrubber";
+import { describePath } from "../../shared/text";
+import { createToggle, enableTogglePainting, type Toggle } from "../../shared/toggle";
+import type { WidgetView, WidgetViewEvents } from "../../shared/widget";
+import { createRow, emptyDeck, isActive, normalizeDeck, STRENGTH, type DeckRow, type DeckValue } from "./model";
+
+const loras = modelFolder("loras", "LoRA");
 
 /** Layout metrics shared with the stylesheet via CSS variables. */
 export const LAYOUT = { headerHeight: 30, rowHeight: 30, rowGap: 4, emptyHeight: 44, padding: 6 } as const;
-
-export interface DeckViewEvents {
-  /** `structural` is true when rows were added/removed, so the node may need resizing. */
-  onChange(structural: boolean): void;
-}
 
 interface RowView {
   el: HTMLElement;
@@ -20,18 +19,18 @@ interface RowView {
   scrubber: Scrubber;
 }
 
-export class DeckView {
-  readonly el = h("div.ld-deck");
+export class DeckView implements WidgetView<DeckValue> {
+  readonly el = h("div.mt-root.ld-deck");
   private value: DeckValue = emptyDeck();
   private readonly views = new Map<string, RowView>();
   private readonly rowsEl = h("div.ld-rows", { role: "list" });
   private readonly masterToggle = createToggle("Toggle all LoRAs");
   private readonly countEl = h("span.ld-count");
-  private readonly addBtn = h("button.ld-btn.ld-add", { type: "button", title: "Add a LoRA" }, "+ Add LoRA");
+  private readonly addBtn = h("button.mt-btn.ld-add", { type: "button", title: "Add a LoRA" }, "+ Add LoRA");
   private readonly emptyEl = h("button.ld-empty", { type: "button" }, "No LoRAs yet — click to add one");
   private readonly unsubscribe: () => void;
 
-  constructor(private readonly events: DeckViewEvents) {
+  constructor(private readonly events: WidgetViewEvents) {
     for (const [key, px] of Object.entries(LAYOUT)) this.el.style.setProperty(`--ld-${key}`, `${px}px`);
 
     this.masterToggle.el.classList.add("ld-master");
@@ -49,13 +48,13 @@ export class DeckView {
       this.mutate(() => this.value.rows.forEach((r) => (r.on = turnOn)));
     });
     enableTogglePainting(this.rowsEl, (target) => {
-      const row = this.rowFromEvent(target, ".ld-toggle");
+      const row = this.rowFromEvent(target, ".mt-toggle");
       return row && { current: row.on, apply: (on) => this.mutate(() => (row.on = on)) };
     });
     this.rowsEl.addEventListener("click", (e) => this.onRowClick(e));
 
-    this.unsubscribe = onLorasChanged(() => this.render());
-    loadLoras();
+    this.unsubscribe = loras.onChanged(() => this.render());
+    loras.load();
     this.render();
   }
 
@@ -97,6 +96,7 @@ export class DeckView {
 
   private pickNew(anchor: HTMLElement) {
     openPicker({
+      source: loras,
       anchor,
       inUse: new Set(this.value.rows.map((r) => r.lora)),
       onPick: (lora) => this.mutate(() => this.value.rows.push(createRow(lora)), true),
@@ -111,6 +111,7 @@ export class DeckView {
       this.mutate(() => (this.value.rows = this.value.rows.filter((r) => r !== row)), true);
     } else if (target.closest(".ld-name")) {
       openPicker({
+        source: loras,
         anchor: this.views.get(row.id)!.name,
         current: row.lora,
         inUse: new Set(this.value.rows.map((r) => r.lora)),
@@ -123,19 +124,7 @@ export class DeckView {
 
   private render() {
     const { rows } = this.value;
-    const ids = new Set(rows.map((r) => r.id));
-    for (const id of this.views.keys()) if (!ids.has(id)) this.views.delete(id);
-
-    const ordered = rows.map((row) => {
-      const view = this.views.get(row.id) ?? this.createRowView(row);
-      this.views.set(row.id, view);
-      this.updateRowView(view, row);
-      return view.el;
-    });
-    const current = Array.from(this.rowsEl.children);
-    if (current.length !== ordered.length || ordered.some((el, i) => current[i] !== el)) {
-      this.rowsEl.replaceChildren(...ordered);
-    }
+    syncKeyed(this.rowsEl, this.views, rows, (row) => this.createRowView(row), (view, row) => this.updateRowView(view, row));
 
     const active = rows.filter(isActive).length;
     this.masterToggle.set(rows.length > 0 && active === rows.length, active > 0 && active < rows.length);
@@ -149,7 +138,7 @@ export class DeckView {
     const toggle = createToggle("Enable LoRA");
     const name = h("button.ld-name", { type: "button" });
     const { id } = row;
-    const scrubber = createScrubber("Strength", (value, commit) => {
+    const scrubber = createScrubber("Strength", STRENGTH, (value, commit) => {
       // Look the row up by id: setData() replaces row objects but keeps views.
       const current = this.findRow(id);
       if (!current) return;
@@ -158,14 +147,14 @@ export class DeckView {
       if (commit) this.mutate(() => {});
       else this.render();
     });
-    const remove = h("button.ld-icon-btn.ld-remove", { type: "button", title: "Remove", "aria-label": "Remove LoRA" }, "×");
+    const remove = h("button.mt-icon-btn.ld-remove", { type: "button", title: "Remove", "aria-label": "Remove LoRA" }, "×");
     const el = h("div.ld-row", { role: "listitem", "data-id": row.id }, toggle.el, name, scrubber.el, remove);
     return { el, toggle, name, scrubber };
   }
 
   private updateRowView(view: RowView, row: DeckRow) {
-    const { name, folder } = describeLora(row.lora);
-    const missing = isMissing(row.lora);
+    const { name, folder } = describePath(row.lora);
+    const missing = loras.isMissing(row.lora);
     view.toggle.set(row.on);
     view.scrubber.set(row.strength);
     view.el.classList.toggle("ld-off", !row.on);

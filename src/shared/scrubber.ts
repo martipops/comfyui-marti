@@ -1,4 +1,4 @@
-import { clampStrength, formatStrength, STRENGTH } from "../model";
+import { clampNumber, formatNumber, type NumberSpec } from "./number";
 import { h } from "./dom";
 
 export interface Scrubber {
@@ -15,26 +15,26 @@ const FILL_RANGE = 2; // fill bar shows 0..2 as 0..100%
  * nudge with arrow keys, and double-click to reset.
  * Shift = fine (x0.1), Ctrl/Cmd = coarse (x10).
  */
-export function createScrubber(label: string, onChange: (value: number, commit: boolean) => void): Scrubber {
-  const fill = h("span.ld-scrub-fill");
-  const text = h("span.ld-scrub-text");
-  const input = h("input.ld-scrub-input", { type: "text", inputmode: "decimal", "aria-label": label });
-  const el = h("div.ld-scrub", { tabindex: 0, role: "spinbutton", "aria-label": label,
-    "aria-valuemin": STRENGTH.min, "aria-valuemax": STRENGTH.max }, fill, text, input);
+export function createScrubber(label: string, spec: NumberSpec, onChange: (value: number, commit: boolean) => void): Scrubber {
+  const fill = h("span.mt-scrub-fill");
+  const text = h("span.mt-scrub-text");
+  const input = h("input.mt-scrub-input", { type: "text", inputmode: "decimal", "aria-label": label });
+  const el = h("div.mt-scrub", { tabindex: 0, role: "spinbutton", "aria-label": label,
+    "aria-valuemin": spec.min, "aria-valuemax": spec.max }, fill, text, input);
 
-  let value: number = STRENGTH.default;
+  let value: number = spec.default;
 
   const render = () => {
-    text.textContent = formatStrength(value);
+    text.textContent = formatNumber(spec, value);
     el.setAttribute("aria-valuenow", String(value));
     const pct = Math.min(1, Math.abs(value) / FILL_RANGE) * 100;
     fill.style.width = `${pct}%`;
-    el.classList.toggle("ld-negative", value < 0);
-    el.classList.toggle("ld-zero", value === 0);
+    el.classList.toggle("mt-negative", value < 0);
+    el.classList.toggle("mt-zero", value === 0);
   };
 
   const update = (next: number, commit: boolean) => {
-    next = clampStrength(next, value);
+    next = clampNumber(spec, next, value);
     if (next === value && !commit) return;
     value = next;
     render();
@@ -46,7 +46,7 @@ export function createScrubber(label: string, onChange: (value: number, commit: 
 
   // --- drag to scrub / click to edit -------------------------------------
   el.addEventListener("pointerdown", (e) => {
-    if (e.button !== 0 || el.classList.contains("ld-editing")) return;
+    if (e.button !== 0 || el.classList.contains("mt-editing")) return;
     e.preventDefault();
     const startX = e.clientX;
     const startValue = value;
@@ -57,16 +57,16 @@ export function createScrubber(label: string, onChange: (value: number, commit: 
       const dx = ev.clientX - startX;
       if (!dragging && Math.abs(dx) < DRAG_THRESHOLD_PX) return;
       dragging = true;
-      el.classList.add("ld-scrubbing");
+      el.classList.add("mt-scrubbing");
       const raw = startValue + dx * UNITS_PER_PX * modifier(ev);
-      const step = ev.shiftKey ? 0.01 : STRENGTH.step;
+      const step = ev.shiftKey ? spec.step / 5 : spec.step;
       update(Math.round(raw / step) * step, false);
     };
     const up = () => {
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
       el.removeEventListener("pointercancel", up);
-      el.classList.remove("ld-scrubbing");
+      el.classList.remove("mt-scrubbing");
       if (dragging) update(value, true);
       else startEditing();
     };
@@ -77,15 +77,15 @@ export function createScrubber(label: string, onChange: (value: number, commit: 
 
   el.addEventListener("dblclick", () => {
     stopEditing(false);
-    update(STRENGTH.default, true);
+    update(spec.default, true);
   });
 
   el.addEventListener("keydown", (e) => {
-    if (el.classList.contains("ld-editing")) return;
+    if (el.classList.contains("mt-editing")) return;
     const dir = e.key === "ArrowUp" || e.key === "ArrowRight" ? 1 : e.key === "ArrowDown" || e.key === "ArrowLeft" ? -1 : 0;
     if (dir) {
       e.preventDefault();
-      update(value + dir * STRENGTH.step * modifier(e), true);
+      update(value + dir * spec.step * modifier(e), true);
     } else if (e.key === "Enter") {
       e.preventDefault();
       startEditing();
@@ -94,16 +94,16 @@ export function createScrubber(label: string, onChange: (value: number, commit: 
 
   // --- inline text editing -----------------------------------------------
   function startEditing() {
-    el.classList.add("ld-editing");
-    input.value = formatStrength(value);
+    el.classList.add("mt-editing");
+    input.value = formatNumber(spec, value);
     input.focus();
     input.select();
   }
 
   function stopEditing(commit: boolean) {
-    if (!el.classList.contains("ld-editing")) return;
-    el.classList.remove("ld-editing");
-    if (commit) update(clampStrength(input.value, value), true);
+    if (!el.classList.contains("mt-editing")) return;
+    el.classList.remove("mt-editing");
+    if (commit) update(clampNumber(spec, input.value, value), true);
   }
 
   input.addEventListener("keydown", (e) => {
@@ -123,7 +123,7 @@ export function createScrubber(label: string, onChange: (value: number, commit: 
   return {
     el,
     set(next) {
-      value = clampStrength(next);
+      value = clampNumber(spec, next);
       render();
     },
   };

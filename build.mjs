@@ -1,6 +1,7 @@
 // Bundles src/ into a single ES module in web/ (ComfyUI loads every .js in web/).
 // ComfyUI's own modules (../../scripts/*.js) stay external and resolve at runtime.
 import * as esbuild from "esbuild";
+import { rmSync } from "node:fs";
 
 const args = new Set(process.argv.slice(2));
 
@@ -13,6 +14,7 @@ const shared = {
 };
 
 if (args.has("--tests")) {
+  rmSync(".test-build", { recursive: true, force: true });
   await esbuild.build({
     ...shared,
     entryPoints: ["tests/*.test.ts"],
@@ -23,7 +25,7 @@ if (args.has("--tests")) {
 } else {
   const ctx = await esbuild.context({
     ...shared,
-    entryPoints: { lora_deck: "src/index.ts" },
+    entryPoints: { marti: "src/index.ts" },
     outdir: "web",
     external: ["../../scripts/*"],
     minify: !args.has("--watch"),

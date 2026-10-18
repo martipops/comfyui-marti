@@ -1,12 +1,12 @@
 [project]
-name = "comfyui-lora-deck"
+name = "comfyui-marti"
 version = "0.1.0"
-description = "A modern multi-LoRA loader node for ComfyUI: per-LoRA toggles, scrubbable strengths, fuzzy search."
+description = "Personal ComfyUI node pack: LoRA Deck and more."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
 
 [tool.comfy]
 PublisherId = ""
-DisplayName = "LoRA Deck"
+DisplayName = "comfyui-marti"
 includes = ["web"]

@@ -30,12 +30,14 @@ export interface ComfyNode {
   addDOMWidget<V>(name: string, type: string, element: HTMLElement, options: DomWidgetOptions<V>): ComfyWidget;
 }
 
+export type CustomWidgetFactory = (
+  node: ComfyNode,
+  inputName: string,
+) => { widget: ComfyWidget; minWidth?: number; minHeight?: number };
+
 export interface ComfyExtension {
   name: string;
-  getCustomWidgets?: () => Record<
-    string,
-    (node: ComfyNode, inputName: string) => { widget: ComfyWidget; minWidth?: number; minHeight?: number }
-  >;
+  getCustomWidgets?: () => Record<string, CustomWidgetFactory>;
   setup?: () => void | Promise<void>;
 }
 

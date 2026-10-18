@@ -3,8 +3,8 @@ import os
 import tempfile
 import unittest
 
-from lora_deck.cache import LoraFileCache
-from lora_deck.deck import STRENGTH_MAX, LoraRow, active_rows, parse_deck
+from marti.lora_deck.cache import LoraFileCache
+from marti.lora_deck.deck import STRENGTH_MAX, LoraRow, active_rows, parse_deck
 
 
 class ParseDeckTests(unittest.TestCase):

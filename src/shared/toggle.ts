@@ -7,7 +7,7 @@ export interface Toggle {
 
 /** Accessible switch. Visual state only; the owner decides what a click means. */
 export function createToggle(label: string): Toggle {
-  const el = h("button.ld-toggle", { type: "button", role: "switch", "aria-label": label }, h("span.ld-toggle-knob"));
+  const el = h("button.mt-toggle", { type: "button", role: "switch", "aria-label": label }, h("span.mt-toggle-knob"));
   return {
     el,
     set(on, mixed = false) {
