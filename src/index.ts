@@ -1,5 +1,6 @@
 import { loraDeck } from "./nodes/lora_deck";
 import { sourceSwitch } from "./nodes/source_switch";
+import { ntfySettings, setupNtfy } from "./ntfy";
 import { app } from "./shared/comfy";
 import type { MartiNode } from "./shared/node";
 import theme from "./shared/theme.css";
@@ -17,7 +18,11 @@ function injectStyles() {
 
 app.registerExtension({
   name: "comfyui-marti",
-  setup: injectStyles,
+  settings: ntfySettings,
+  setup() {
+    injectStyles();
+    setupNtfy();
+  },
   getCustomWidgets: () => Object.assign({}, ...NODES.map((n) => n.widgets ?? {})),
   addCustomNodeDefs(defs) {
     for (const node of NODES) {

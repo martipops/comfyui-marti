@@ -67,14 +67,40 @@ export interface ComfyExtension {
   setup?: () => void | Promise<void>;
   addCustomNodeDefs?: (defs: Record<string, NodeDef>) => void;
   beforeRegisterNodeDef?: (nodeType: { prototype: object } & Record<string, unknown>, nodeData: { name: string }) => void;
+  settings?: ComfySetting[];
+}
+
+export interface ComfySetting {
+  id: string;
+  category?: string[];
+  name: string;
+  tooltip?: string;
+  type: "text" | "boolean" | "number";
+  defaultValue: unknown;
+}
+
+export interface ComfyWorkflow {
+  filename?: string;
+  activeState?: { id?: string } | null;
+  initialState?: { id?: string } | null;
 }
 
 export const app = rawApp as {
   registerExtension(ext: ComfyExtension): void;
   graph?: { setDirtyCanvas(fg: boolean, bg?: boolean): void };
+  extensionManager?: {
+    setting?: { get(id: string): unknown };
+    workflow?: { activeWorkflow?: ComfyWorkflow | null; openWorkflows?: ComfyWorkflow[] };
+  };
+  ui?: { settings?: { getSettingValue(id: string): unknown } };
 };
+
+/** Reads a frontend setting, covering both the current and the legacy settings API. */
+export function getSetting(id: string): unknown {
+  return app.extensionManager?.setting?.get(id) ?? app.ui?.settings?.getSettingValue(id);
+}
 
 export const api = rawApi as {
   fetchApi(route: string, init?: RequestInit): Promise<Response>;
-  addEventListener(type: string, fn: () => void): void;
+  addEventListener(type: string, fn: (e: CustomEvent) => void): void;
 };

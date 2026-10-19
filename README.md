@@ -32,6 +32,20 @@ Widget value (schema v1), defined in `marti/lora_deck/deck.py` and
              "strength": 0.8, "strengthClip": null }] }
 ```
 
+## ntfy notifications
+
+Set **Settings → Marti → ntfy topic** and every job you queue pings that topic
+when it finishes or fails. Leave the topic empty to turn it off.
+
+- Title: the workflow name and how long the job took. Failures also say which
+  node failed and why.
+- The job's main saved output (the same one the queue uses as its thumbnail,
+  never a temp preview) is attached. Turn off **Attach the result image** if the
+  topic is public. Anyone who knows the topic name can read it.
+- **ntfy server** defaults to `https://ntfy.sh`.
+
+It runs in the browser tab that queued the job, so that tab has to stay open.
+
 ## Layout
 
 ```
