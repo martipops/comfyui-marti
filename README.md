@@ -46,11 +46,37 @@ when it finishes or fails. Leave the topic empty to turn it off.
 
 It runs in the browser tab that queued the job, so that tab has to stay open.
 
+## Models tab
+
+The **Models** sidebar tab (download icon) downloads models onto the machine
+running ComfyUI, which is the server, not your browser. That makes it useful on cloud
+instances.
+
+- **Download a model**: paste a Civitai link (civitai.com or .red, with or without
+  `modelVersionId`) or a Hugging Face file link, or any direct URL. It shows the name,
+  size and a suggested folder. Change the folder or file name if you like, then click
+  **Download**.
+- **Search Civitai**: search on Enter, filter by type, sort. **Get** fills in the
+  link for the chosen version. Results are cached on the server for 10 minutes and
+  nothing is fetched while you type, so it stays well under Civitai's limits. NSFW
+  thumbnails are blurred until clicked (turn off in Settings → Marti → Models).
+- Downloads run on the server, two at a time, with progress, cancel, and a toast
+  when done. Files go to `<name>.part` first, are checked against Civitai's or
+  Hugging Face's sha256, then moved into place. Existing files are never
+  overwritten. Model dropdowns refresh on their own.
+
+Tokens: the server uses `CIVITAI_TOKEN` and `HF_TOKEN` from its environment (on
+Vast, set them on the instance). They're never sent to the browser. **Settings →
+Marti → Models** has token fields for machines without those variables, e.g. a local
+install. They're only used when the env var is missing.
+
 ## Layout
 
 ```
 __init__.py              V3 entrypoint listing every node, WEB_DIRECTORY
 marti/<node>/            Python per node (pure logic kept free of ComfyUI imports)
+marti/downloader/        Models tab backend: links.py (pure), service.py (downloads,
+                         search), routes.py (/marti/models/* and /marti/civitai/search)
 src/
   index.ts               registers one frontend extension for the whole pack
   shared/                building blocks every node reuses
@@ -62,6 +88,8 @@ src/
     number.ts text.ts value.ts        pure helpers
     theme.css            theme tokens (mt-*) and control styles
   nodes/<node>/          view, model and styles for one node, exported as a MartiNode
+  downloader/            Models sidebar tab (panel, API client, formatting)
+  ntfy/                  job notifications
 web/marti.js             built bundle (committed; ComfyUI loads it directly)
 tests/                   Python (unittest) and TS (node:test)
 ```
@@ -80,7 +108,7 @@ tests/                   Python (unittest) and TS (node:test)
 npm install
 npm run watch        # rebuild web/ on save, then refresh the browser
 npm run check        # typecheck + TS tests + production build
-python -m unittest tests.test_lora_deck   # from this folder, with ComfyUI's python
+python -m unittest discover tests   # from this folder, with ComfyUI's python
 ```
 
 Commit the rebuilt `web/marti.js` with source changes. Python changes need a

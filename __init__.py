@@ -2,6 +2,7 @@ from typing_extensions import override
 
 from comfy_api.latest import ComfyExtension, io
 
+from .marti.downloader import routes as _downloader_routes  # noqa: F401 - registers /marti/models/* routes
 from .marti.lora_deck.node import LoraDeck
 from .marti.source_switch.node import SourceSwitch
 

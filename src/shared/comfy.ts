@@ -85,12 +85,33 @@ export interface ComfyWorkflow {
   initialState?: { id?: string } | null;
 }
 
+export interface SidebarTab {
+  id: string;
+  icon: string;
+  title: string;
+  tooltip?: string;
+  type: "custom";
+  render(container: HTMLElement): void;
+  destroy?(): void;
+}
+
+export interface Toast {
+  severity: "success" | "info" | "warn" | "error";
+  summary: string;
+  detail?: string;
+  life?: number;
+}
+
 export const app = rawApp as {
   registerExtension(ext: ComfyExtension): void;
   graph?: { setDirtyCanvas(fg: boolean, bg?: boolean): void };
+  /** Re-reads model lists into every combo widget. */
+  refreshComboInNodes?(): Promise<void>;
   extensionManager?: {
     setting?: { get(id: string): unknown };
     workflow?: { activeWorkflow?: ComfyWorkflow | null; openWorkflows?: ComfyWorkflow[] };
+    registerSidebarTab?(tab: SidebarTab): void;
+    toast?: { add(toast: Toast): void };
   };
   ui?: { settings?: { getSettingValue(id: string): unknown } };
 };

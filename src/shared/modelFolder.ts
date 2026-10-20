@@ -57,6 +57,11 @@ function createModelFolder(folder: string, noun: string): ModelFolder {
   };
 }
 
+/** Reloads a folder's list if any node uses it, e.g. after a download lands there. */
+export function refreshModelFolder(folder: string) {
+  folders.get(folder)?.load(true);
+}
+
 export function modelFolder(folder: string, noun: string): ModelFolder {
   let entry = folders.get(folder);
   if (!entry) folders.set(folder, (entry = createModelFolder(folder, noun)));

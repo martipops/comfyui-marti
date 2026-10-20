@@ -1,3 +1,4 @@
+import { downloaderSettings, downloaderStyles, setupDownloader } from "./downloader";
 import { loraDeck } from "./nodes/lora_deck";
 import { sourceSwitch } from "./nodes/source_switch";
 import { ntfySettings, setupNtfy } from "./ntfy";
@@ -12,16 +13,17 @@ function injectStyles() {
   if (document.getElementById(id)) return;
   const style = document.createElement("style");
   style.id = id;
-  style.textContent = [theme, ...NODES.map((n) => n.styles ?? "")].join("\n");
+  style.textContent = [theme, downloaderStyles, ...NODES.map((n) => n.styles ?? "")].join("\n");
   document.head.append(style);
 }
 
 app.registerExtension({
   name: "comfyui-marti",
-  settings: ntfySettings,
+  settings: [...ntfySettings, ...downloaderSettings],
   setup() {
     injectStyles();
     setupNtfy();
+    setupDownloader();
   },
   getCustomWidgets: () => Object.assign({}, ...NODES.map((n) => n.widgets ?? {})),
   addCustomNodeDefs(defs) {
