@@ -25,14 +25,39 @@ function setFontSize(size: number) {
   window.dispatchEvent(new Event(FONT_EVENT));
 }
 
+/** A− size A+, kept in sync across every box and the full-screen editor. */
+class FontControls {
+  private readonly down = h("button.mt-btn.mp-btn.mp-font-btn", { type: "button", title: "Smaller text" }, "A−");
+  private readonly up = h("button.mt-btn.mp-btn.mp-font-btn", { type: "button", title: "Bigger text" }, "A+");
+  private readonly label = h("span.mp-font-size");
+  readonly el = h("span.mp-font", {}, this.down, this.label, this.up);
+  private readonly sync = () => {
+    this.label.textContent = String(fontSize);
+    this.down.disabled = fontSize <= FONT_MIN;
+    this.up.disabled = fontSize >= FONT_MAX;
+  };
+
+  constructor() {
+    // Keep focus (and the iOS keyboard) in the text while tapping these.
+    this.el.addEventListener("mousedown", (e) => e.preventDefault());
+    this.down.addEventListener("click", () => setFontSize(fontSize - 1));
+    this.up.addEventListener("click", () => setFontSize(fontSize + 1));
+    window.addEventListener(FONT_EVENT, this.sync);
+    this.sync();
+  }
+
+  dispose() {
+    window.removeEventListener(FONT_EVENT, this.sync);
+  }
+}
+
 export class PromptView implements WidgetView<string> {
   readonly el = h("div.mt-root.mp-prompt");
   readonly stretches = true;
   private readonly text = h("textarea.mp-text", { placeholder: "Prompt…", rows: 1, "aria-label": "Prompt" });
   private readonly count = h("span.mp-count");
-  private readonly fontDown = h("button.mt-btn.mp-btn.mp-font-btn", { type: "button", title: "Smaller text" }, "A−");
-  private readonly fontUp = h("button.mt-btn.mp-btn.mp-font-btn", { type: "button", title: "Bigger text" }, "A+");
-  private readonly fontLabel = h("span.mp-font-size");
+  private readonly font = new FontControls();
+  /** Text height changes with the font size. */
   private readonly onFont = () => this.render();
   private readonly fullBtn = h("button.mt-btn.mp-btn", { type: "button", title: "Edit full screen" }, "⤢ Full");
   private value = "";
@@ -44,14 +69,12 @@ export class PromptView implements WidgetView<string> {
   private sheet: FullScreenEditor | null = null;
 
   constructor(private readonly events: WidgetViewEvents) {
-    this.el.append(this.text, h("div.mp-toolbar", {}, this.fontDown, this.fontLabel, this.fontUp, this.count, this.fullBtn));
+    this.el.append(this.text, h("div.mp-toolbar", {}, this.font.el, this.count, this.fullBtn));
     this.el.style.setProperty("--mp-min", `${MIN_TEXT_HEIGHT}px`);
     isolateFromCanvas(this.el);
 
     this.text.addEventListener("input", () => this.edit(this.text.value));
     this.fullBtn.addEventListener("click", () => this.openSheet());
-    this.fontDown.addEventListener("click", () => setFontSize(fontSize - 1));
-    this.fontUp.addEventListener("click", () => setFontSize(fontSize + 1));
     window.addEventListener(FONT_EVENT, this.onFont);
     this.resizeObserver.observe(this.text);
     this.render();
@@ -73,6 +96,7 @@ export class PromptView implements WidgetView<string> {
   dispose() {
     this.resizeObserver.disconnect();
     window.removeEventListener(FONT_EVENT, this.onFont);
+    this.font.dispose();
     this.sheet?.close();
   }
 
@@ -86,9 +110,6 @@ export class PromptView implements WidgetView<string> {
     if (this.text.value !== this.value) this.text.value = this.value;
     const words = wordCount(this.value);
     this.count.textContent = `${words} ${words === 1 ? "word" : "words"}`;
-    this.fontLabel.textContent = String(fontSize);
-    this.fontDown.disabled = fontSize <= FONT_MIN;
-    this.fontUp.disabled = fontSize >= FONT_MAX;
     this.autosize();
   }
 
@@ -122,10 +143,12 @@ export class PromptView implements WidgetView<string> {
  */
 class FullScreenEditor {
   private readonly text = h("textarea.mp-text.mp-sheet-text", { "aria-label": "Prompt" });
+  private readonly font = new FontControls();
+  private readonly done = h("button.mp-done", { type: "button" }, "Done");
   private readonly el = h(
     "div.mt-root.mp-sheet",
     { role: "dialog", "aria-modal": "true", "aria-label": "Edit prompt" },
-    h("div.mp-sheet-bar", {}, h("span.mp-sheet-title", {}, "Prompt"), h("button.mp-done", { type: "button" }, "Done")),
+    h("div.mp-sheet-bar", {}, h("span.mp-sheet-title", {}, "Prompt"), this.font.el, this.done),
     this.text,
   );
   private readonly fit = () => {
@@ -138,7 +161,7 @@ class FullScreenEditor {
   constructor(value: string, onInput: (value: string) => void, private readonly onClose: () => void) {
     this.text.value = value;
     this.text.addEventListener("input", () => onInput(this.text.value));
-    this.el.querySelector("button")!.addEventListener("click", () => this.close());
+    this.done.addEventListener("click", () => this.close());
     this.el.addEventListener("keydown", (e) => {
       e.stopPropagation();
       if (e.key === "Escape") this.close();
@@ -155,6 +178,7 @@ class FullScreenEditor {
   close() {
     window.visualViewport?.removeEventListener("resize", this.fit);
     window.visualViewport?.removeEventListener("scroll", this.fit);
+    this.font.dispose();
     this.el.remove();
     this.onClose();
   }
