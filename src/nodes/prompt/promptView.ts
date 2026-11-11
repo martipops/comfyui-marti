@@ -3,13 +3,14 @@ import type { WidgetView, WidgetViewEvents } from "../../shared/widget";
 
 const TOOLBAR_HEIGHT = 40;
 const MIN_TEXT_HEIGHT = 160;
-/** The inline box stops growing here and scrolls; the full-screen editor has no limit. */
+/** Typing grows the box up to here, then it scrolls. A bigger node still stretches it further. */
 const MAX_TEXT_HEIGHT = 480;
 
 const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
 
 export class PromptView implements WidgetView<string> {
   readonly el = h("div.mt-root.mp-prompt");
+  readonly stretches = true;
   private readonly text = h("textarea.mp-text", { placeholder: "Prompt…", rows: 1, "aria-label": "Prompt" });
   private readonly count = h("span.mp-count");
   private readonly clearBtn = h("button.mt-btn.mp-btn", { type: "button" }, "Clear");
@@ -27,7 +28,6 @@ export class PromptView implements WidgetView<string> {
   constructor(private readonly events: WidgetViewEvents) {
     this.el.append(this.text, h("div.mp-toolbar", {}, this.count, this.clearBtn, this.fullBtn));
     this.el.style.setProperty("--mp-min", `${MIN_TEXT_HEIGHT}px`);
-    this.el.style.setProperty("--mp-max", `${MAX_TEXT_HEIGHT}px`);
     isolateFromCanvas(this.el);
 
     this.text.addEventListener("input", () => this.edit(this.text.value));
@@ -83,9 +83,12 @@ export class PromptView implements WidgetView<string> {
   /** Grows the box to fit the text, so nothing has to be resized by hand (iOS can't drag textarea corners). */
   private autosize() {
     this.lastWidth = this.text.clientWidth;
+    // Measure without flex stretching, which would report the node's height instead of the text's.
+    this.text.style.flexGrow = "0";
     this.text.style.height = "0px";
     const height = Math.min(Math.max(this.text.scrollHeight, MIN_TEXT_HEIGHT), MAX_TEXT_HEIGHT);
     this.text.style.height = `${height}px`;
+    this.text.style.flexGrow = "";
     if (height !== this.textHeight) {
       this.textHeight = height;
       this.events.onChange(true);
