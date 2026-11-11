@@ -5,7 +5,7 @@ Personal ComfyUI node pack.
 | Node | What it does |
 |---|---|
 | **LoRA Deck** (`LoraDeck`) | Any number of LoRAs in one node, each with a toggle and strength |
-| **Marti Prompt** (`MartiPrompt`) | CLIP Text Encode with a prompt box that's easy to use on a phone |
+| **Marti Prompt** (`MartiPrompt`) | A text box that's easy to use on a phone, output as STRING |
 
 ## LoRA Deck
 
@@ -35,9 +35,9 @@ Widget value (schema v1), defined in `marti/lora_deck/deck.py` and
 
 ## Marti Prompt
 
-A drop-in for CLIP Text Encode: `clip` in, `CONDITIONING` and the prompt as
-`STRING` out. It's meant for the Apps view on a phone, where the stock prompt box
-can't be resized on iOS.
+Like a String primitive: a text box whose text comes out as `STRING`. Wire it into
+CLIP Text Encode's `text` input (or anything else that takes a string). It's meant
+for the Apps view on a phone, where the stock prompt box can't be resized on iOS.
 
 - The box grows as you type (up to 480px, then scrolls), so there's nothing to drag.
 - 17px text, so iOS Safari doesn't zoom in when you tap it.

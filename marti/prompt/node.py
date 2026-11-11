@@ -7,27 +7,20 @@ PromptInput = io.Custom(WIDGET_TYPE)
 
 
 class MartiPrompt(io.ComfyNode):
-    """CLIP Text Encode with a prompt box made for phones (big text, grows as you type, full-screen editor)."""
+    """A String primitive with a prompt box made for phones (big text, grows as you type, full-screen editor)."""
 
     @classmethod
     def define_schema(cls) -> io.Schema:
         return io.Schema(
             node_id="MartiPrompt",
             display_name="Marti Prompt",
-            category="conditioning",
-            search_aliases=["prompt", "positive prompt", "text encode", "mobile prompt", "clip text encode"],
-            description="Encodes a prompt like CLIP Text Encode, with a large text box that is easy to edit on a phone.",
-            inputs=[
-                io.Clip.Input("clip"),
-                PromptInput.Input("prompt", extra_dict={"socketless": True}),
-            ],
-            outputs=[
-                io.Conditioning.Output(display_name="CONDITIONING"),
-                io.String.Output(display_name="STRING"),
-            ],
+            category="utils/primitive",
+            search_aliases=["prompt", "positive prompt", "text", "string", "mobile prompt"],
+            description="A text box that is easy to edit on a phone. Outputs the text as a STRING.",
+            inputs=[PromptInput.Input("prompt", extra_dict={"socketless": True})],
+            outputs=[io.String.Output(display_name="STRING")],
         )
 
     @classmethod
-    def execute(cls, clip, prompt) -> io.NodeOutput:
-        tokens = clip.tokenize(prompt)
-        return io.NodeOutput(clip.encode_from_tokens_scheduled(tokens), prompt)
+    def execute(cls, prompt) -> io.NodeOutput:
+        return io.NodeOutput(prompt)
