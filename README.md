@@ -40,7 +40,9 @@ CLIP Text Encode's `text` input (or anything else that takes a string). It's mea
 for the Apps view on a phone, where the stock prompt box can't be resized on iOS.
 
 - The box grows as you type (up to 480px, then scrolls), so there's nothing to drag.
-- 17px text, so iOS Safari doesn't zoom in when you tap it.
+- Text is 17px by default, so iOS Safari doesn't zoom in when you tap it.
+- **A− / A+** (bottom left) set the text size, 10–32px. It's remembered per device and
+  applies to every Marti Prompt box. On touch screens it never goes below 16px.
 - **⤢ Full** opens a full-screen editor that stays above the keyboard. **Done** or
   Esc closes it.
 

@@ -1,4 +1,4 @@
-/* Marti Prompt. 17px text: iOS Safari zooms the page into any field under 16px. */
+/* Marti Prompt. --mp-font is set from the A−/A+ buttons (promptView.ts). */
 .mp-prompt {
   display: flex;
   flex-direction: column;
@@ -15,7 +15,7 @@
   border: 1px solid var(--mt-border);
   background: var(--mt-bg);
   color: var(--mt-fg);
-  font: 17px/1.5 system-ui, sans-serif;
+  font: var(--mp-font, 17px)/1.5 system-ui, sans-serif;
   resize: none !important;
   overflow-y: auto;
 }
@@ -37,6 +37,7 @@
 }
 .mp-count {
   flex: 1;
+  text-align: right;
   color: var(--mt-muted);
   font-size: 13px;
 }
@@ -44,6 +45,19 @@
   height: 32px;
   min-width: 64px;
   font-size: 14px;
+}
+.mp-prompt .mp-font-btn {
+  min-width: 40px;
+}
+.mp-prompt .mp-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.mp-font-size {
+  min-width: 2ch;
+  text-align: center;
+  color: var(--mt-muted);
+  font-size: 13px;
 }
 
 .mp-sheet {
@@ -90,5 +104,10 @@
   border: 0;
   border-radius: 0;
   padding: 16px max(16px, env(safe-area-inset-left)) 16px max(16px, env(safe-area-inset-right));
-  font-size: 19px;
+}
+/* iOS Safari zooms the page into any field with text under 16px. */
+@media (pointer: coarse) {
+  .mp-text {
+    font-size: max(16px, var(--mp-font, 17px));
+  }
 }
