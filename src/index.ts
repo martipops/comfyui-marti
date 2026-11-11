@@ -1,12 +1,13 @@
 import { downloaderSettings, downloaderStyles, setupDownloader } from "./downloader";
 import { loraDeck } from "./nodes/lora_deck";
+import { martiPrompt } from "./nodes/prompt";
 import { sourceSwitch } from "./nodes/source_switch";
 import { ntfySettings, setupNtfy } from "./ntfy";
 import { app } from "./shared/comfy";
 import type { MartiNode } from "./shared/node";
 import theme from "./shared/theme.css";
 
-const NODES: MartiNode[] = [loraDeck, sourceSwitch];
+const NODES: MartiNode[] = [loraDeck, martiPrompt, sourceSwitch];
 
 function injectStyles() {
   const id = "comfyui-marti-styles";

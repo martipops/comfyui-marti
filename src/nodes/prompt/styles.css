@@ -1,0 +1,97 @@
+/* Marti Prompt. 17px text: iOS Safari zooms the page into any field under 16px. */
+.mp-prompt {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.mp-text {
+  display: block;
+  width: 100%;
+  min-height: var(--mp-min);
+  max-height: var(--mp-max);
+  padding: 10px 12px;
+  border-radius: var(--mt-radius) var(--mt-radius) 0 0;
+  border: 1px solid var(--mt-border);
+  background: var(--mt-bg);
+  color: var(--mt-fg);
+  font: 17px/1.5 system-ui, sans-serif;
+  resize: none !important;
+  overflow-y: auto;
+}
+.mp-text:focus {
+  outline: none;
+  border-color: var(--mt-accent);
+}
+.mp-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 4px 0 12px;
+  border: 1px solid var(--mt-border);
+  border-top: 0;
+  border-radius: 0 0 var(--mt-radius) var(--mt-radius);
+  background: var(--mt-bg);
+}
+.mp-count {
+  flex: 1;
+  color: var(--mt-muted);
+  font-size: 13px;
+}
+.mp-prompt .mp-btn {
+  height: 32px;
+  min-width: 64px;
+  font-size: 14px;
+}
+.mp-prompt .mp-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.mp-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100dvh;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  background: var(--comfy-menu-bg, #151517);
+  overscroll-behavior: contain;
+}
+.mp-sheet-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  height: 56px;
+  padding: 0 12px 0 16px;
+  padding-top: env(safe-area-inset-top);
+  box-sizing: content-box;
+  border-bottom: 1px solid var(--mt-border);
+}
+.mp-sheet-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+}
+.mp-sheet .mp-done {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: var(--mt-accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+.mp-sheet .mp-sheet-text {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  padding: 16px max(16px, env(safe-area-inset-left)) 16px max(16px, env(safe-area-inset-right));
+  font-size: 19px;
+}
