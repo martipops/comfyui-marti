@@ -13,11 +13,8 @@ export class PromptView implements WidgetView<string> {
   readonly stretches = true;
   private readonly text = h("textarea.mp-text", { placeholder: "Prompt…", rows: 1, "aria-label": "Prompt" });
   private readonly count = h("span.mp-count");
-  private readonly clearBtn = h("button.mt-btn.mp-btn", { type: "button" }, "Clear");
   private readonly fullBtn = h("button.mt-btn.mp-btn", { type: "button", title: "Edit full screen" }, "⤢ Full");
   private value = "";
-  /** Text removed by Clear, until the next edit. */
-  private cleared: string | null = null;
   private textHeight = MIN_TEXT_HEIGHT;
   private lastWidth = 0;
   private readonly resizeObserver = new ResizeObserver(() => {
@@ -26,20 +23,11 @@ export class PromptView implements WidgetView<string> {
   private sheet: FullScreenEditor | null = null;
 
   constructor(private readonly events: WidgetViewEvents) {
-    this.el.append(this.text, h("div.mp-toolbar", {}, this.count, this.clearBtn, this.fullBtn));
+    this.el.append(this.text, h("div.mp-toolbar", {}, this.count, this.fullBtn));
     this.el.style.setProperty("--mp-min", `${MIN_TEXT_HEIGHT}px`);
     isolateFromCanvas(this.el);
 
     this.text.addEventListener("input", () => this.edit(this.text.value));
-    this.clearBtn.addEventListener("click", () => {
-      const undo = this.cleared;
-      const old = this.value;
-      this.edit(undo ?? "");
-      if (undo === null) {
-        this.cleared = old;
-        this.render();
-      }
-    });
     this.fullBtn.addEventListener("click", () => this.openSheet());
     this.resizeObserver.observe(this.text);
     this.render();
@@ -55,7 +43,6 @@ export class PromptView implements WidgetView<string> {
 
   setData(raw: unknown) {
     this.value = typeof raw === "string" ? raw : "";
-    this.cleared = null;
     this.render();
   }
 
@@ -66,7 +53,6 @@ export class PromptView implements WidgetView<string> {
 
   private edit(value: string) {
     this.value = value;
-    this.cleared = null;
     this.render();
     this.events.onChange(false);
   }
@@ -75,8 +61,6 @@ export class PromptView implements WidgetView<string> {
     if (this.text.value !== this.value) this.text.value = this.value;
     const words = wordCount(this.value);
     this.count.textContent = `${words} ${words === 1 ? "word" : "words"}`;
-    this.clearBtn.textContent = this.cleared !== null ? "Undo" : "Clear";
-    this.clearBtn.disabled = this.cleared === null && !this.value;
     this.autosize();
   }
 

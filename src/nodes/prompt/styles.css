@@ -45,10 +45,6 @@
   min-width: 64px;
   font-size: 14px;
 }
-.mp-prompt .mp-btn:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
 
 .mp-sheet {
   position: fixed;

@@ -43,7 +43,6 @@ for the Apps view on a phone, where the stock prompt box can't be resized on iOS
 - 17px text, so iOS Safari doesn't zoom in when you tap it.
 - **⤢ Full** opens a full-screen editor that stays above the keyboard. **Done** or
   Esc closes it.
-- **Clear** empties the box and turns into **Undo** until you type again.
 
 In the Apps builder, add its `prompt` input like any other. `{a|b}` dynamic
 prompts aren't expanded here.
